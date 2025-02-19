@@ -1,10 +1,11 @@
 interface ChatInputProps {
   inputText: string;
   setInputText: (text: string) => void;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
+  onSubmit: (e: React.FormEvent) => void;
+  disabled?: boolean;
 }
 
-export function ChatInput({ inputText, setInputText, onSubmit }: ChatInputProps) {
+export function ChatInput({ inputText, setInputText, onSubmit, disabled }: ChatInputProps) {
   return (
     <form onSubmit={onSubmit} className="flex gap-2">
       <input
@@ -13,6 +14,7 @@ export function ChatInput({ inputText, setInputText, onSubmit }: ChatInputProps)
         onChange={(e) => setInputText(e.target.value)}
         className="flex-1 p-2 border rounded-lg"
         placeholder="Type a message..."
+        disabled={disabled}
       />
       <button
         type="submit"
