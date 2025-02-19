@@ -1,1 +1,1 @@
-export const BACKEND_URL = 'http://localhost/api/chat/process_messages'; 
+export const BACKEND_URL = 'http://localhost/api';

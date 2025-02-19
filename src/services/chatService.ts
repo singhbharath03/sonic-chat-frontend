@@ -2,7 +2,7 @@ import { Message } from '@/types/chat';
 import { BACKEND_URL } from '@/constants/api';
 
 export async function sendMessages(messages: Message[]): Promise<{ messages: Message[] }> {
-  const response = await fetch(BACKEND_URL, {
+  const response = await fetch(BACKEND_URL + '/chat/process_messages', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -14,5 +14,10 @@ export async function sendMessages(messages: Message[]): Promise<{ messages: Mes
     throw new Error('Failed to get response');
   }
 
+  return response.json();
+}
+
+export async function fetchInitialMessages() {
+  const response = await fetch(BACKEND_URL + '/chat/new_thread');
   return response.json();
 } 
