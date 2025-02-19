@@ -1,13 +1,21 @@
 import { Message } from '@/types/chat';
 import { BACKEND_URL } from '@/constants/api';
 
-export async function sendMessages(messages: Message[]): Promise<{ messages: Message[] }> {
-  const response = await fetch(BACKEND_URL + '/chat/process_messages', {
-    method: 'POST',
+async function makeRequest<T, B = void>(
+  endpoint: string,
+  userId: string,
+  options?: {
+    method?: string;
+    body?: B;
+  }
+): Promise<T> {  
+  const url = `${BACKEND_URL}${endpoint}?privy_user_id=${encodeURIComponent(userId)}`;
+  const response = await fetch(url, {
+    method: options?.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages }),
+    ...(options?.body && { body: JSON.stringify(options.body) }),
   });
 
   if (!response.ok) {
@@ -17,7 +25,13 @@ export async function sendMessages(messages: Message[]): Promise<{ messages: Mes
   return response.json();
 }
 
-export async function fetchInitialMessages() {
-  const response = await fetch(BACKEND_URL + '/chat/new_thread');
-  return response.json();
+export async function sendMessages(messages: Message[], userId: string): Promise<{ messages: Message[] }> {
+  return makeRequest<{ messages: Message[] }, { messages: Message[] }>('/chat/process_messages', userId, {
+    method: 'POST',
+    body: { messages },
+  });
+}
+
+export async function fetchInitialMessages(userId: string) {
+  return makeRequest('/chat/new_thread', userId);
 } 
