@@ -5,20 +5,20 @@ import { ChatInput } from '@/components/ChatInput';
 import { ChatContainer } from '@/components/ChatContainer';
 import { useChat } from '@/hooks/useChat';
 import { usePrivy } from '@privy-io/react-auth';
-import { WalletIcon } from '@/components/icons/WalletIcon';
-import { CopyButton } from '@/components/CopyButton';
+import { WalletDisplay } from '@/components/WalletDisplay';
+import { useWalletManagement } from '@/hooks/useWalletManagement';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
   const { messages, isLoading, initializeChat, sendMessage } = useChat();
-  const { login, ready, authenticated, user } = usePrivy();
-
+  const { login, ready, authenticated } = usePrivy();
+  const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
 
   useEffect(() => {
-    if (authenticated) {
+    if (authenticated && ready) {
       initializeChat();
     }
-  }, [initializeChat, authenticated]);
+  }, [initializeChat, authenticated, ready]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,17 +40,10 @@ export default function Page() {
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 mb-4 justify-end">
-            <CopyButton
-              text={user?.wallet?.address || ''}
-              displayText={user?.wallet?.address ? 
-                `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}` : 
-                ''
-              }
-              icon={<WalletIcon />}
-              title="Click to copy wallet address"
-            />
-          </div>
+          <WalletDisplay 
+            evmWallets={embeddedEvmWallets}
+            solanaWallets={embeddedSolanaWallets}
+          />
           <ChatContainer messages={messages} isLoading={isLoading} />
           <ChatInput
             inputText={inputText}

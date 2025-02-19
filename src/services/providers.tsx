@@ -14,9 +14,14 @@ export default function Providers({children}: {children: React.ReactNode}) {
             logo: 'https://sonicscan.org/assets/sonic/images/svg/logos/logo-light.svg?v=25.2.2.0',
           },
           // Create embedded wallets for users who don't have a wallet
-          embeddedWallets: {
-            createOnLogin: 'users-without-wallets',
-          },
+          embeddedWallets: { 
+            ethereum: { 
+              createOnLogin: 'users-without-wallets', 
+            }, 
+            solana: { 
+              createOnLogin: 'users-without-wallets', 
+            }, 
+          }, 
         }}
       >
         {children}
