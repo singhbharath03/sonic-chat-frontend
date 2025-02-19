@@ -6,6 +6,7 @@ import { ChatContainer } from '@/components/ChatContainer';
 import { useChat } from '@/hooks/useChat';
 import { usePrivy } from '@privy-io/react-auth';
 import { WalletIcon } from '@/components/icons/WalletIcon';
+import { CopyButton } from '@/components/CopyButton';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
@@ -40,10 +41,15 @@ export default function Page() {
       ) : (
         <>
           <div className="flex items-center gap-2 mb-4 justify-end">
-            <WalletIcon />
-            <span className="text-sm text-gray-600">
-              {user?.wallet?.address ? `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}` : ''}
-            </span>
+            <CopyButton
+              text={user?.wallet?.address || ''}
+              displayText={user?.wallet?.address ? 
+                `${user.wallet.address.slice(0, 6)}...${user.wallet.address.slice(-4)}` : 
+                ''
+              }
+              icon={<WalletIcon />}
+              title="Click to copy wallet address"
+            />
           </div>
           <ChatContainer messages={messages} isLoading={isLoading} />
           <ChatInput
