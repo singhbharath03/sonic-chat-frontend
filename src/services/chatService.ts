@@ -1,7 +1,7 @@
 import { Message } from '@/types/chat';
 import { BACKEND_URL } from '@/constants/api';
 
-async function makeRequest<T, B = void>(
+export async function makeRequest<T, B = void>(
   endpoint: string,
   userId: string,
   options?: {
