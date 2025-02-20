@@ -13,7 +13,11 @@ export function ChatContainer({ messages, isLoading }: ChatContainerProps) {
         <div className="text-center text-gray-500">Loading messages...</div>
       ) : (
         messages
-          .filter(message => message.role === 'user' || message.role === 'assistant')
+          .filter(message => 
+            (message.role === 'user' || message.role === 'assistant') && 
+            message.content && 
+            message.content.trim() !== ''
+          )
           .map((message, index) => (
             <ChatMessage key={index} message={message} />
           ))
