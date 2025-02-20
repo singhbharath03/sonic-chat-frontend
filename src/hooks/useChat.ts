@@ -48,9 +48,8 @@ export function useChat() {
     fetchInitialMessages: async () => {},
   };
 
-  if (!user?.id) throw new Error('User ID is required');
-
   const handleLLMResponse = async (conversationId: string) => {
+    if (!user?.id) return;
     const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
     
     // Extract the actual transaction object
@@ -82,6 +81,7 @@ export function useChat() {
   };
 
   const sendMessage = async (content: string) => {
+    if (!user?.id) return;
     const userMessage = { content, role: 'user' as MessageRole };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
