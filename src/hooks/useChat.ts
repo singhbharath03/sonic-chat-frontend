@@ -7,11 +7,14 @@ export function useChat() {
   const { user, ready } = usePrivy();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
     try {
-      const data = await fetchInitialMessages(user.id) as { messages: Message[] };
+      const data = await fetchInitialMessages(user.id) as { messages: Message[], id: string };
       setMessages(data.messages);
+      setConversationId(data.id);
     } catch (error) {
       console.error('Error fetching initial messages:', error);
       setMessages([{
@@ -26,6 +29,7 @@ export function useChat() {
   if (!ready) return {
     messages: [],
     isLoading: true,
+    conversationId: null,
     initializeChat: async () => {},
     sendMessage: async () => {},
     sendMessages: async () => {},
@@ -40,7 +44,8 @@ export function useChat() {
     setMessages(updatedMessages);
 
     try {
-      const data = await sendMessages(updatedMessages, user?.id) as { messages: Message[] };
+      if (!conversationId) throw new Error('No conversation ID');
+      const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[] };
       setMessages(data.messages);
     } catch (error) {
       console.error('Error:', error);
@@ -51,20 +56,11 @@ export function useChat() {
     }
   };
 
-  const sendMessagesWithUser = async (messages: Message[]) => {
-    return sendMessages(messages, user?.id) as Promise<{ messages: Message[] }>;
-  };
-
-  const fetchInitialMessagesWithUser = async () => {
-    return fetchInitialMessages(user?.id) as Promise<{ messages: Message[] }>;
-  };
-
   return {
     messages,
     isLoading,
+    conversationId,
     initializeChat,
     sendMessage,
-    sendMessages: sendMessagesWithUser,
-    fetchInitialMessages: fetchInitialMessagesWithUser,
   };
 } 

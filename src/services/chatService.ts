@@ -25,10 +25,16 @@ async function makeRequest<T, B = void>(
   return response.json();
 }
 
-export async function sendMessages(messages: Message[], userId: string): Promise<{ messages: Message[] }> {
-  return makeRequest<{ messages: Message[] }, { messages: Message[] }>('/chat/process_messages', userId, {
+export async function sendMessages(conversationId: string, userMessage: string, userId: string): Promise<{ messages: Message[] }> {
+  return makeRequest<
+    { messages: Message[], id: string }, 
+    { id: string; user_message: string }
+  >('/chat/process_messages', userId, {
     method: 'POST',
-    body: { messages },
+    body: { 
+      id: conversationId,
+      user_message: userMessage,
+     },
   });
 }
 
