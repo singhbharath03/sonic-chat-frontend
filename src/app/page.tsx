@@ -10,7 +10,7 @@ import { useWalletManagement } from '@/hooks/useWalletManagement';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
-  const { messages, isLoading, initializeChat, sendMessage } = useChat();
+  const { messages, isLoading, initializeChat, sendMessage, intermittentState, setIntermittentState } = useChat();
   const { login, ready, authenticated } = usePrivy();
   const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
 
@@ -44,7 +44,7 @@ export default function Page() {
             evmWallets={embeddedEvmWallets}
             solanaWallets={embeddedSolanaWallets}
           />
-          <ChatContainer messages={messages} isLoading={isLoading} />
+          <ChatContainer messages={messages} isLoading={isLoading} intermittentState={intermittentState ?? null} />
           <ChatInput
             inputText={inputText}
             setInputText={setInputText}
