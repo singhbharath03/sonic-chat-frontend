@@ -5,12 +5,8 @@ import { UnsignedTransactionRequest, usePrivy, useWallets } from '@privy-io/reac
 
 interface TransactionDetails {
   transaction_details: {
-    type: string;
-    chain_id: number;
     description: string;
-    transaction: {
-      transaction: UnsignedTransactionRequest 
-    };
+    transaction: UnsignedTransactionRequest;
   };
 }
 
@@ -51,9 +47,9 @@ export function useChat() {
   const handleLLMResponse = async (conversationId: string) => {
     if (!user?.id) return;
     const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
-    
+
     // Extract the actual transaction object
-    const txData = conv.transaction_details.transaction.transaction;
+    const txData = conv.transaction_details.transaction;
 
     const wallet = wallets[0];
     const provider = await wallet.getEthereumProvider();
@@ -65,7 +61,7 @@ export function useChat() {
 
     if (txHash) {
       // Submit the signed transaction hash and get updated messages
-      const response = await makeRequest< {messages: Message[]}, {signed_tx_hash: string} >(
+      const response = await makeRequest< {messages: Message[], needs_txn_signing: boolean}, {signed_tx_hash: string} >(
         `/chat/conversations/${conversationId}/submit_transaction`,
         user.id,
         {
@@ -73,9 +69,12 @@ export function useChat() {
           body: { signed_tx_hash: txHash }
         }
       );
-      
+
       // Update messages with the response
       setMessages(response.messages);
+      if (response.needs_txn_signing) {
+        await handleLLMResponse(conversationId);
+      }
     }
     
   };
