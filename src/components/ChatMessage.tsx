@@ -1,4 +1,4 @@
- import { Message } from '@/types/chat';
+import { Message } from '@/types/chat';
  import Markdown from 'react-markdown';
 
 interface ChatMessageProps {
@@ -8,7 +8,7 @@ interface ChatMessageProps {
 export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
-      className={`mb-2 p-2 rounded-lg max-w-[80%] ${
+      className={`mb-8 p-2 rounded-lg max-w-[40%] ${
         message.role === 'user'
           ? 'ml-auto bg-blue-500 text-white'
           : 'bg-white'

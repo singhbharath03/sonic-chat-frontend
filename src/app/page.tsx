@@ -33,25 +33,29 @@ export default function Page() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
+    <div className="p-4 h-full">
       {!authenticated ? (
         <div className="text-center py-10">
           <button onClick={login} className="btn">Login</button>
         </div>
       ) : (
-        <>
+        <div className="flex flex-col h-full w-full">
           <WalletDisplay 
             evmWallets={embeddedEvmWallets}
             solanaWallets={embeddedSolanaWallets}
           />
-          <ChatContainer messages={messages} isLoading={isLoading} />
-          <ChatInput
-            inputText={inputText}
-            setInputText={setInputText}
-            onSubmit={handleSubmit}
-            disabled={isLoading}
-          />
-        </>
+          <div className="flex-grow w-full overflow-y-hidden flex flex-col-reverse">
+            <ChatContainer messages={messages} isLoading={isLoading} />
+          </div>
+          <div className="mt-4 w-full">
+            <ChatInput
+              inputText={inputText}
+              setInputText={setInputText}
+              onSubmit={handleSubmit}
+              disabled={isLoading}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
