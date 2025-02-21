@@ -33,13 +33,13 @@ export default function Page() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
+    <div className="min-h-screen w-full lg:max-w-5xl mx-auto p-4 space-y-6">
       {!authenticated ? (
         <div className="text-center py-10">
           <button onClick={login} className="btn">Login</button>
         </div>
       ) : (
-        <>
+        <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
           <WalletDisplay 
             evmWallets={embeddedEvmWallets}
             solanaWallets={embeddedSolanaWallets}
@@ -51,7 +51,7 @@ export default function Page() {
             onSubmit={handleSubmit}
             disabled={isLoading}
           />
-        </>
+        </div>
       )}
     </div>
   );

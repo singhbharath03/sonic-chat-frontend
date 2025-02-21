@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { FiCopy, FiCheck } from 'react-icons/fi';
+
 
 interface CopyButtonProps {
   text: string;
@@ -31,7 +33,7 @@ export function CopyButton({
     >
       {icon}
       {displayText || text}
-      {copied && <span className="ml-2 text-green-600">Copied!</span>}
+      {copied ? <FiCheck className="ml-2" /> : <FiCopy className="ml-2" />}
     </button>
   );
 } 
