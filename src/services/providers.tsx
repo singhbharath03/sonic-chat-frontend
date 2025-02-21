@@ -24,7 +24,8 @@ export default function Providers({children}: {children: React.ReactNode}) {
             solana: { 
               createOnLogin: 'users-without-wallets', 
             }, 
-          }, 
+            showWalletUIs: false,
+          }
         }}
       >
         {children}
