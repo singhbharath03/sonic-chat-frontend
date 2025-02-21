@@ -24,8 +24,8 @@ export default function Page() {
     e.preventDefault();
     if (!inputText.trim() || !authenticated) return;
     
-    await sendMessage(inputText);
     setInputText('');
+    await sendMessage(inputText);
   };
 
   if (!ready) {

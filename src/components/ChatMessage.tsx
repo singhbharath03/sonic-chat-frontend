@@ -1,4 +1,5 @@
  import { Message } from '@/types/chat';
+ import Markdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: Message;
@@ -13,7 +14,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
           : 'bg-white'
       }`}
     >
-      {message.content}
+      <Markdown>{message.content}</Markdown>
     </div>
   );
 }
