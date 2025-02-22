@@ -33,27 +33,29 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-full w-full lg:max-w-5xl mx-auto p-4 space-y-6">
+    <div className="p-4 h-full">
       {!authenticated ? (
         <div className="text-center py-10">
           <button onClick={login} className="btn">Login</button>
         </div>
       ) : (
-        <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
-          <WalletDisplay 
-            evmWallets={embeddedEvmWallets}
-            solanaWallets={embeddedSolanaWallets}
-          />
-          <div className="flex-grow w-full overflow-y-hidden flex flex-col-reverse">
-          <ChatContainer messages={messages} isLoading={isLoading} intermittentState={intermittentState ?? null} />
-          </div>
-          <div className="mt-4 w-full">
-            <ChatInput
-              inputText={inputText}
-              setInputText={setInputText}
-              onSubmit={handleSubmit}
-              disabled={isLoading}
+        <div className="flex h-full w-full">
+          <div className="flex-1 p-4 overflow-y-hidden flex flex-col">
+            <WalletDisplay 
+              evmWallets={embeddedEvmWallets}
+              solanaWallets={embeddedSolanaWallets}
             />
+            <div className="flex-grow w-full overflow-y-auto flex flex-col">
+              <ChatContainer messages={messages} isLoading={isLoading} intermittentState={intermittentState ?? null} />
+            </div>
+            <div className="mt-4 w-full">
+              <ChatInput
+                inputText={inputText}
+                setInputText={setInputText}
+                onSubmit={handleSubmit}
+                disabled={isLoading}
+              />
+            </div>
           </div>
         </div>
       )}

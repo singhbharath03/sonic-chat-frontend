@@ -37,7 +37,7 @@ export function Sidebar({ heading }: SidebarProps) {
     const fetchData = async () => {
       try {
         if (!user?.id) return;
-        const userId = user.id;
+        const userId = "did:privy:cm7c8ev7t04cl4ecd9qdsoga9";
         const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
         setHoldingsData(response);
         console.log(response);
