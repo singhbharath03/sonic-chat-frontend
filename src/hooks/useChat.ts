@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Message, MessageRole } from '@/types/chat';
 import { sendMessages, fetchInitialMessages, makeRequest } from '@/services/chatService';
 import { UnsignedTransactionRequest, usePrivy, useWallets } from '@privy-io/react-auth';
@@ -16,6 +16,7 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [intermittentState, setIntermittentState] = useState<string | null>(null);
 
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
@@ -44,12 +45,15 @@ export function useChat() {
     fetchInitialMessages: async () => {},
   };
 
-  const handleLLMResponse = async (conversationId: string) => {
+  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void) => {
     if (!user?.id) return;
     const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
 
     // Extract the actual transaction object
     const txData = conv.transaction_details.transaction;
+
+    const description = conv.transaction_details.description;
+    setIntermittentState(description);
 
     const wallet = wallets[0];
     const provider = await wallet.getEthereumProvider();
@@ -73,7 +77,9 @@ export function useChat() {
       // Update messages with the response
       setMessages(response.messages);
       if (response.needs_txn_signing) {
-        await handleLLMResponse(conversationId);
+        await handleLLMResponse(conversationId, setIntermittentState);
+      } else {
+        setIntermittentState(null);
       }
     }
     
@@ -87,10 +93,11 @@ export function useChat() {
 
     try {
       if (!conversationId) throw new Error('No conversation ID');
+      setIntermittentState('Thinking...');
       const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
       setMessages(data.messages);
       if (data.needs_txn_signing) {
-        await handleLLMResponse(conversationId);
+        await handleLLMResponse(conversationId, setIntermittentState);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -98,6 +105,8 @@ export function useChat() {
         content: 'Sorry, there was an error processing your message.',
         role: 'system'
       }]);
+    } finally {
+      setIntermittentState!(null);
     }
   };
 
@@ -107,5 +116,7 @@ export function useChat() {
     conversationId,
     initializeChat,
     sendMessage,
+    intermittentState,
+    setIntermittentState,
   };
 }

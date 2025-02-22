@@ -10,7 +10,7 @@ import { useWalletManagement } from '@/hooks/useWalletManagement';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
-  const { messages, isLoading, initializeChat, sendMessage } = useChat();
+  const { messages, isLoading, initializeChat, sendMessage, intermittentState, setIntermittentState } = useChat();
   const { login, ready, authenticated } = usePrivy();
   const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
 
@@ -33,19 +33,19 @@ export default function Page() {
   }
 
   return (
-    <div className="p-4 h-full">
+    <div className="min-h-full w-full lg:max-w-5xl mx-auto p-4 space-y-6">
       {!authenticated ? (
         <div className="text-center py-10">
           <button onClick={login} className="btn">Login</button>
         </div>
       ) : (
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
           <WalletDisplay 
             evmWallets={embeddedEvmWallets}
             solanaWallets={embeddedSolanaWallets}
           />
           <div className="flex-grow w-full overflow-y-hidden flex flex-col-reverse">
-            <ChatContainer messages={messages} isLoading={isLoading} />
+          <ChatContainer messages={messages} isLoading={isLoading} intermittentState={intermittentState ?? null} />
           </div>
           <div className="mt-4 w-full">
             <ChatInput
