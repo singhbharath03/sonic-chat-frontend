@@ -1,6 +1,7 @@
 import { Message } from '@/types/chat';
 import Markdown from 'react-markdown';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import Link from 'next/link'; 
 
 interface ChatMessageProps {
   message: Message;
@@ -8,14 +9,23 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   return (
-    <div
-      className={`mb-8 p-2 rounded-lg max-w-[40%] ${
-        message.role === 'user'
-          ? 'ml-auto bg-blue-500 text-white w-fit text-right'
-          : 'bg-white'
-      }`}
-    >
-      <Markdown>{message.content}</Markdown>
+    <div className="flex items-center mb-8">
+      <div
+        className={`p-2 rounded-lg max-w-[40%] ${
+          message.role === 'user'
+            ? 'ml-auto bg-blue-500 text-white w-fit text-right'
+            : 'bg-white'
+        }`}
+      >
+        <Markdown>{message.content}</Markdown>
+        {message.role === 'assistant' && message.tx_hash && (
+          <div className="flex flex-col items-start mt-2">
+            <Link href={`https://sonicscan.org/tx/${message.tx_hash}`} className="text-blue-500 cursor-pointer mt-1" target="_blank" rel="noopener noreferrer">
+              See transaction
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
