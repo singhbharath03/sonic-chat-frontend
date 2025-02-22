@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { makeRequest } from '@/services/chatService';
 import { usePrivy } from '@privy-io/react-auth';
+import { useHoldings } from '@/context/HoldingsContext';
 
 interface SidebarProps {
   heading: string;
@@ -30,7 +31,7 @@ interface ApiResponse {
 }
 
 export function Sidebar({ heading }: SidebarProps) {
-  const [holdingsData, setHoldingsData] = useState<ApiResponse>();
+  const { holdingsData, setHoldingsData } = useHoldings();
   const { user } = usePrivy();
 
   useEffect(() => {
@@ -40,14 +41,13 @@ export function Sidebar({ heading }: SidebarProps) {
         const userId = user.id;
         const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
         setHoldingsData(response);
-        console.log(response);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, setHoldingsData]);
 
   return (
     <div className="w-1/4 bg-gray-100 p-4 rounded-lg shadow-lg">

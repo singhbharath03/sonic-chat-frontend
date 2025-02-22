@@ -10,6 +10,11 @@ interface TransactionDetails {
   };
 }
 
+interface ApiResponse {
+  holdings: TokenData[];
+  total_usd_value?: DisplayValue;
+}
+
 export function useChat() {
   const { user, ready } = usePrivy();
   const {wallets} = useWallets();
@@ -17,6 +22,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [intermittentState, setIntermittentState] = useState<string | null>(null);
+  const [holdingsData, setHoldingsData] = useState<ApiResponse>();
 
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
@@ -35,6 +41,22 @@ export function useChat() {
     }
   }, [user?.id]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!user?.id) return;
+        const userId = user.id;
+        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+        setHoldingsData(response);
+        console.log("hi" + response.holdings);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, [user?.id]);
+
   if (!ready) return {
     messages: [],
     isLoading: true,
@@ -45,7 +67,7 @@ export function useChat() {
     fetchInitialMessages: async () => {},
   };
 
-  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void) => {
+  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void, setHoldingsData: (data: ApiResponse) => void) => {
     if (!user?.id) return;
     const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
 
@@ -77,15 +99,29 @@ export function useChat() {
       // Update messages with the response
       setMessages(response.messages);
       if (response.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState);
+        await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
       } else {
         setIntermittentState(null);
       }
+
+      // Call fetchData after the transaction is completed
+      const fetchData = async () => {
+        try {
+          if (!user?.id) return;
+          const userId = user.id;
+          const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+          setHoldingsData(response);
+          console.log("bye" + response.holdings);
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      };
+
+      fetchData();
     }
-    
   };
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, setHoldingsData: (data: ApiResponse) => void) => {
     if (!user?.id) return;
     const userMessage = { content, role: 'user' as MessageRole };
     const updatedMessages = [...messages, userMessage];
@@ -97,7 +133,7 @@ export function useChat() {
       const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
       setMessages(data.messages);
       if (data.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState);
+        await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -118,5 +154,6 @@ export function useChat() {
     sendMessage,
     intermittentState,
     setIntermittentState,
+    holdingsData,
   };
 }
