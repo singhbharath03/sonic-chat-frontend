@@ -36,14 +36,10 @@ export function Sidebar({ heading }: SidebarProps) {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        if (!user?.id) return;
-        const userId = user.id;
-        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-        setHoldingsData(response);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      if (!user?.id) return;
+      const userId = user.id;
+      const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+      setHoldingsData(response);
     };
 
     fetchData();
@@ -61,9 +57,9 @@ export function Sidebar({ heading }: SidebarProps) {
         <table className="min-w-full bg-white rounded-lg shadow-md">
           <thead className="bg-gray-200">
             <tr>
-              <th className="py-2 px-4 text-left w-1/2">Token</th>
-              <th className="py-2 px-4 text-left w-1/4">Balance</th>
-              <th className="py-2 px-4 text-left w-1/4">USD Value</th>
+              <th className="py-2 px-4 text-left w-1/3">Token</th>
+              <th className="py-2 px-4 text-left w-1/3">Balance</th>
+              <th className="py-2 px-4 text-left w-1/3">USD Value</th>
             </tr>
           </thead>
           <tbody>

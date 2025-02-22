@@ -26,32 +26,18 @@ export function useChat() {
 
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
-    try {
-      const data = await fetchInitialMessages(user.id) as { messages: Message[], id: string };
-      setMessages(data.messages);
-      setConversationId(data.id);
-    } catch (error) {
-      console.error('Error fetching initial messages:', error);
-      setMessages([{
-        content: 'Failed to load chat history.',
-        role: 'system'
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await fetchInitialMessages(user.id) as { messages: Message[], id: string };
+    setMessages(data.messages);
+    setConversationId(data.id);
+    setIsLoading(false);
   }, [user?.id]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        if (!user?.id) return;
-        const userId = user.id;
-        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-        setHoldingsData(response);
-        console.log("hi" + response.holdings);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      if (!user?.id) return;
+      const userId = user.id;
+      const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+      setHoldingsData(response);
     };
 
     fetchData();
@@ -106,15 +92,10 @@ export function useChat() {
 
       // Call fetchData after the transaction is completed
       const fetchData = async () => {
-        try {
-          if (!user?.id) return;
-          const userId = user.id;
-          const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-          setHoldingsData(response);
-          console.log("bye" + response.holdings);
-        } catch (error) {
-          console.error('Error fetching data:', error);
-        }
+        if (!user?.id) return;
+        const userId = user.id;
+        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+        setHoldingsData(response);
       };
 
       fetchData();
@@ -127,23 +108,14 @@ export function useChat() {
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
 
-    try {
-      if (!conversationId) throw new Error('No conversation ID');
-      setIntermittentState('Thinking...');
-      const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
-      setMessages(data.messages);
-      if (data.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        content: 'Sorry, there was an error processing your message.',
-        role: 'system'
-      }]);
-    } finally {
-      setIntermittentState!(null);
+    if (!conversationId) throw new Error('No conversation ID');
+    setIntermittentState('Thinking...');
+    const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
+    setMessages(data.messages);
+    if (data.needs_txn_signing) {
+      await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
     }
+    setIntermittentState!(null);
   };
 
   return {
