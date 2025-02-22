@@ -1,6 +1,8 @@
 "use client";
+
 import { useEffect, useState } from 'react';
 import { makeRequest } from '@/services/chatService';
+import { usePrivy } from '@privy-io/react-auth';
 
 interface SidebarProps {
   heading: string;
@@ -25,11 +27,13 @@ interface ApiResponse {
 export function Sidebar({ heading }: SidebarProps) {
   const [data, setData] = useState<TokenData[]>([]);
   const [totalUsdValue, setTotalUsdValue] = useState<number>(0);
+  const { user } = usePrivy();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userId = 'did:privy:cm7c8ev7t04cl4ecd9qdsoga9'; // Replace with actual user ID
+        if (!user?.id) return;
+        const userId = user.id;
         const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
         setData(response.holdings);
         setTotalUsdValue(response.total_usd_value);
@@ -40,7 +44,7 @@ export function Sidebar({ heading }: SidebarProps) {
     };
 
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   return (
     <div className="w-1/4 bg-gray-100 p-4 rounded-lg shadow-lg">
