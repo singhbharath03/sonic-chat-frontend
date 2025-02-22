@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { makeRequest } from '@/services/chatService';
 import { usePrivy } from '@privy-io/react-auth';
+import { useHoldings } from '@/context/HoldingsContext';
 
 interface SidebarProps {
   heading: string;
@@ -30,24 +31,19 @@ interface ApiResponse {
 }
 
 export function Sidebar({ heading }: SidebarProps) {
-  const [holdingsData, setHoldingsData] = useState<ApiResponse>();
+  const { holdingsData, setHoldingsData } = useHoldings();
   const { user } = usePrivy();
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        if (!user?.id) return;
-        const userId = user.id;
-        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-        setHoldingsData(response);
-        console.log(response);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
+      if (!user?.id) return;
+      const userId = user.id;
+      const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+      setHoldingsData(response);
     };
 
     fetchData();
-  }, [user?.id]);
+  }, [user?.id, setHoldingsData]);
 
   return (
     <div className="w-1/4 bg-gray-100 p-4 rounded-lg shadow-lg">
@@ -61,9 +57,9 @@ export function Sidebar({ heading }: SidebarProps) {
         <table className="min-w-full bg-white rounded-lg shadow-md">
           <thead className="bg-gray-200">
             <tr>
-              <th className="py-2 px-4 text-left w-1/2">Token</th>
-              <th className="py-2 px-4 text-left w-1/4">Balance</th>
-              <th className="py-2 px-4 text-left w-1/4">USD Value</th>
+              <th className="py-2 px-4 text-left w-1/3">Token</th>
+              <th className="py-2 px-4 text-left w-1/3">Balance</th>
+              <th className="py-2 px-4 text-left w-1/3">USD Value</th>
             </tr>
           </thead>
           <tbody>

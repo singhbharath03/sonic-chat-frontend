@@ -10,6 +10,11 @@ interface TransactionDetails {
   };
 }
 
+interface ApiResponse {
+  holdings: TokenData[];
+  total_usd_value?: DisplayValue;
+}
+
 export function useChat() {
   const { user, ready } = usePrivy();
   const {wallets} = useWallets();
@@ -17,22 +22,25 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [intermittentState, setIntermittentState] = useState<string | null>(null);
+  const [holdingsData, setHoldingsData] = useState<ApiResponse>();
 
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
-    try {
-      const data = await fetchInitialMessages(user.id) as { messages: Message[], id: string };
-      setMessages(data.messages);
-      setConversationId(data.id);
-    } catch (error) {
-      console.error('Error fetching initial messages:', error);
-      setMessages([{
-        content: 'Failed to load chat history.',
-        role: 'system'
-      }]);
-    } finally {
-      setIsLoading(false);
-    }
+    const data = await fetchInitialMessages(user.id) as { messages: Message[], id: string };
+    setMessages(data.messages);
+    setConversationId(data.id);
+    setIsLoading(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user?.id) return;
+      const userId = user.id;
+      const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+      setHoldingsData(response);
+    };
+
+    fetchData();
   }, [user?.id]);
 
   if (!ready) return {
@@ -45,7 +53,7 @@ export function useChat() {
     fetchInitialMessages: async () => {},
   };
 
-  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void) => {
+  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void, setHoldingsData: (data: ApiResponse) => void) => {
     if (!user?.id) return;
     const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
 
@@ -77,37 +85,37 @@ export function useChat() {
       // Update messages with the response
       setMessages(response.messages);
       if (response.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState);
+        await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
       } else {
         setIntermittentState(null);
       }
+
+      // Call fetchData after the transaction is completed
+      const fetchData = async () => {
+        if (!user?.id) return;
+        const userId = user.id;
+        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+        setHoldingsData(response);
+      };
+
+      fetchData();
     }
-    
   };
 
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, setHoldingsData: (data: ApiResponse) => void) => {
     if (!user?.id) return;
     const userMessage = { content, role: 'user' as MessageRole };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
 
-    try {
-      if (!conversationId) throw new Error('No conversation ID');
-      setIntermittentState('Thinking...');
-      const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
-      setMessages(data.messages);
-      if (data.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      setMessages(prev => [...prev, {
-        content: 'Sorry, there was an error processing your message.',
-        role: 'system'
-      }]);
-    } finally {
-      setIntermittentState!(null);
+    if (!conversationId) throw new Error('No conversation ID');
+    setIntermittentState('Thinking...');
+    const data = await sendMessages(conversationId, content, user?.id) as { messages: Message[], needs_txn_signing: boolean };
+    setMessages(data.messages);
+    if (data.needs_txn_signing) {
+      await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
     }
+    setIntermittentState!(null);
   };
 
   return {
@@ -118,5 +126,6 @@ export function useChat() {
     sendMessage,
     intermittentState,
     setIntermittentState,
+    holdingsData,
   };
 }

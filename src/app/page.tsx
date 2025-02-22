@@ -7,12 +7,14 @@ import { useChat } from '@/hooks/useChat';
 import { usePrivy } from '@privy-io/react-auth';
 import { WalletDisplay } from '@/components/WalletDisplay';
 import { useWalletManagement } from '@/hooks/useWalletManagement';
+import { useHoldings } from '@/context/HoldingsContext';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
   const { messages, isLoading, initializeChat, sendMessage, intermittentState, setIntermittentState } = useChat();
   const { login, ready, authenticated } = usePrivy();
   const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
+  const { setHoldingsData } = useHoldings();
 
   useEffect(() => {
     if (authenticated && ready) {
@@ -25,7 +27,7 @@ export default function Page() {
     if (!inputText.trim() || !authenticated) return;
     
     setInputText('');
-    await sendMessage(inputText);
+    await sendMessage(inputText, setHoldingsData);
   };
 
   if (!ready) {
