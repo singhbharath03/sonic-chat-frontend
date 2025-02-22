@@ -8,25 +8,29 @@ interface SidebarProps {
   heading: string;
 }
 
+interface DisplayValue {
+  value: number;
+  display_value: string;
+}
+
 interface TokenData {
   token_address: string;
-  balance: number;
+  balance: DisplayValue;
   name: string;
   symbol: string;
   decimals: number;
   logo_url: string;
-  price: number;
-  usd_value: number;
+  price?: DisplayValue;
+  usd_value?: DisplayValue;
 }
 
 interface ApiResponse {
   holdings: TokenData[];
-  total_usd_value: number;
+  total_usd_value?: DisplayValue;
 }
 
 export function Sidebar({ heading }: SidebarProps) {
-  const [data, setData] = useState<TokenData[]>([]);
-  const [totalUsdValue, setTotalUsdValue] = useState<number>(0);
+  const [holdingsData, setHoldingsData] = useState<ApiResponse>();
   const { user } = usePrivy();
 
   useEffect(() => {
@@ -35,8 +39,7 @@ export function Sidebar({ heading }: SidebarProps) {
         if (!user?.id) return;
         const userId = user.id;
         const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-        setData(response.holdings);
-        setTotalUsdValue(response.total_usd_value);
+        setHoldingsData(response);
         console.log(response);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -51,7 +54,7 @@ export function Sidebar({ heading }: SidebarProps) {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">{heading}</h2>
         <div className="text-lg font-semibold">
-          <strong>Total USD Value: </strong>{totalUsdValue}
+          <strong>Total USD Value: </strong>{holdingsData?.total_usd_value?.display_value}
         </div>
       </div>
       <div className="overflow-y-auto max-h-96">
@@ -64,14 +67,14 @@ export function Sidebar({ heading }: SidebarProps) {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, index) => (
+            {holdingsData?.holdings.map((row, index) => (
               <tr key={index} className="hover:bg-gray-100">
                 <td className="py-2 px-4 flex items-center w-full">
                   <img src={row.logo_url} alt={row.name} className="w-6 h-6 mr-2" />
                   {row.symbol}
                 </td>
-                <td className="py-2 px-4">{row.balance}</td>
-                <td className="py-2 px-4">{row.usd_value}</td>
+                <td className="py-2 px-4">{row.balance.display_value}</td>
+                <td className="py-2 px-4">{row.usd_value?.display_value}</td>
               </tr>
             ))}
           </tbody>
