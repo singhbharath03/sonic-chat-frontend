@@ -11,7 +11,7 @@ import { useHoldings } from '@/context/HoldingsContext';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
-  const { messages, isLoading, initializeChat, sendMessage, intermittentState, setIntermittentState } = useChat();
+  const { messages, isLoading, initializeChat, sendMessage, intermittentState } = useChat();
   const { login, ready, authenticated } = usePrivy();
   const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
   const { setHoldingsData } = useHoldings();
@@ -35,31 +35,31 @@ export default function Page() {
   }
 
   return (
-    <div className="p-4 h-full">
+    <div className="h-full flex flex-col">
       {!authenticated ? (
-        <div className="text-center py-10">
+        <div className="flex items-center justify-center h-full">
           <button onClick={login} className="btn">Login</button>
         </div>
       ) : (
-        <div className="flex h-full w-full">
-          <div className="flex-1 p-4 overflow-y-hidden flex flex-col">
-            <WalletDisplay 
-              evmWallets={embeddedEvmWallets}
-              solanaWallets={embeddedSolanaWallets}
+        <>
+          <WalletDisplay 
+            evmWallets={embeddedEvmWallets}
+            solanaWallets={embeddedSolanaWallets}
+          />
+          <div className="flex-grow overflow-y-auto mb-4">
+            <ChatContainer 
+              messages={messages} 
+              isLoading={isLoading} 
+              intermittentState={intermittentState ?? null} 
             />
-            <div className="flex-grow w-full overflow-y-auto flex flex-col">
-              <ChatContainer messages={messages} isLoading={isLoading} intermittentState={intermittentState ?? null} />
-            </div>
-            <div className="mt-4 w-full">
-              <ChatInput
-                inputText={inputText}
-                setInputText={setInputText}
-                onSubmit={handleSubmit}
-                disabled={isLoading}
-              />
-            </div>
           </div>
-        </div>
+          <ChatInput
+            inputText={inputText}
+            setInputText={setInputText}
+            onSubmit={handleSubmit}
+            disabled={isLoading}
+          />
+        </>
       )}
     </div>
   );

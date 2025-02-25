@@ -2,6 +2,8 @@
 
 import {PrivyProvider} from '@privy-io/react-auth';
 import {sonic} from 'viem/chains';
+import { HoldingsProvider } from '@/context/HoldingsContext';
+import { PointsProvider } from '@/context/PointsContext';
 
 export default function Providers({children}: {children: React.ReactNode}) {
   return (
@@ -28,7 +30,11 @@ export default function Providers({children}: {children: React.ReactNode}) {
           }
         }}
       >
-        {children}
+        <HoldingsProvider>
+          <PointsProvider>
+            {children}
+          </PointsProvider>
+        </HoldingsProvider>
       </PrivyProvider>
   );
 }

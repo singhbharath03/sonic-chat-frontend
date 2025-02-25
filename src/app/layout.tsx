@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/services/providers";
 import { Sidebar } from "@/components/Sidebar";
-import { HoldingsProvider } from '@/context/HoldingsContext';
+import { PointsCard } from "@/components/PointsCard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,14 +31,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          <HoldingsProvider>
-            <div className="flex h-screen">
+          <div className="flex h-screen">
+            {/* Left Sidebar */}
+            <div className="w-1/4 h-full p-4 overflow-y-auto flex flex-col">
               <Sidebar heading="Assets" />
-              <div className="flex-1 p-4">
-                {children}
+              <div className="mt-auto pt-4">
+                <PointsCard />
               </div>
             </div>
-          </HoldingsProvider>
+            
+            {/* Main Content */}
+            <div className="w-3/4 h-full p-4">
+              {children}
+            </div>
+          </div>
         </Providers>
       </body>
     </html>
