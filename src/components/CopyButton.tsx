@@ -13,7 +13,7 @@ interface CopyButtonProps {
 export function CopyButton({ 
   text, 
   displayText, 
-  className = "text-sm text-gray-600 hover:text-gray-900 transition-colors cursor-pointer flex items-center gap-1",
+  className = "text-sm text-gray-600 hover:text-gray-700 transition-colors cursor-pointer flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200",
   icon,
   title = "Click to copy"
 }: CopyButtonProps) {
@@ -31,9 +31,12 @@ export function CopyButton({
       className={className}
       title={title}
     >
-      {icon}
-      {displayText || text}
-      {copied ? <FiCheck className="ml-2" /> : <FiCopy className="ml-2" />}
+      {icon && <span className="text-gray-500">{icon}</span>}
+      <span className="font-medium">{displayText || text}</span>
+      {copied ? 
+        <FiCheck className="text-green-500" /> : 
+        <FiCopy className="text-gray-400 hover:text-gray-600" />
+      }
     </button>
   );
 } 

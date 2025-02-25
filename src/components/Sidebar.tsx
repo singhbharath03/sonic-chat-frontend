@@ -46,33 +46,48 @@ export function Sidebar({ heading }: SidebarProps) {
   }, [user?.id, setHoldingsData]);
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg shadow-lg w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">{heading}</h2>
-        <div className="text-sm font-semibold">
-          {holdingsData?.total_usd_value?.display_value}
-        </div>
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-5">
+        <h2 className="text-xl font-semibold text-gray-800">{heading}</h2>
+        {holdingsData?.total_usd_value && (
+          <div className="text-sm font-medium px-3 py-1 bg-blue-50 text-blue-600 rounded-full">
+            {holdingsData.total_usd_value.display_value}
+          </div>
+        )}
       </div>
-      <div className="overflow-y-auto max-h-80">
-        <table className="w-full bg-white rounded-lg shadow-md">
-          <thead className="bg-gray-200">
-            <tr>
-              <th className="py-2 px-2 text-left">Token</th>
-              <th className="py-2 px-2 text-left">Balance</th>
-              <th className="py-2 px-2 text-left">USD</th>
+      
+      <div className="overflow-hidden rounded-xl shadow-sm border border-gray-200">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Token</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
+              <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">USD</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {holdingsData?.holdings.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-100">
-                <td className="py-2 px-2 flex items-center">
-                  <img src={row.logo_url} alt={row.name} className="w-5 h-5 mr-1" />
-                  {row.symbol}
+              <tr key={index} className="hover:bg-gray-50 transition-colors">
+                <td className="py-3 px-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <img src={row.logo_url} alt={row.name} className="w-6 h-6 mr-2 rounded-full" />
+                    <div>
+                      <div className="font-medium text-gray-900">{row.symbol}</div>
+                      <div className="text-xs text-gray-500">{row.name}</div>
+                    </div>
+                  </div>
                 </td>
-                <td className="py-2 px-2 text-sm">{row.balance.display_value}</td>
-                <td className="py-2 px-2 text-sm">{row.usd_value?.display_value}</td>
+                <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">{row.balance.display_value}</td>
+                <td className="py-3 px-4 whitespace-nowrap text-sm text-gray-700">{row.usd_value?.display_value || '-'}</td>
               </tr>
             ))}
+            {!holdingsData?.holdings.length && (
+              <tr>
+                <td colSpan={3} className="py-4 px-4 text-center text-sm text-gray-500">
+                  No assets found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

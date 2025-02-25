@@ -9,9 +9,9 @@ interface WalletDisplayProps {
 
 export function WalletDisplay({ evmWallets, solanaWallets }: WalletDisplayProps) {
   return (
-    <div className="flex gap-4 mb-4 justify-end">
+    <div className="flex gap-3 p-5 justify-end border-b border-gray-200 bg-white">
       {solanaWallets.map((wallet) => (
-        <div key={wallet.address} className="flex items-center gap-2 justify-end">
+        <div key={wallet.address} className="flex items-center">
           <CopyButton
             text={wallet.address || ''}
             displayText={wallet.address ? 
@@ -24,7 +24,7 @@ export function WalletDisplay({ evmWallets, solanaWallets }: WalletDisplayProps)
         </div>
       ))}
       {evmWallets.map((wallet) => (
-        <div key={wallet.address} className="flex items-center gap-2 justify-end">
+        <div key={wallet.address} className="flex items-center">
           <CopyButton
             text={wallet.address || ''}
             displayText={wallet.address ? 

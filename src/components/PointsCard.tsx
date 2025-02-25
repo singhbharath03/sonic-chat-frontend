@@ -16,56 +16,64 @@ export function PointsCard() {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg p-4 shadow-md w-full border border-gray-200">
-        <p className="text-center text-sm text-gray-600">Loading points data...</p>
+      <div className="bg-white rounded-xl p-5 w-full border border-gray-200">
+        <div className="flex justify-center items-center h-20">
+          <div className="animate-pulse flex space-x-4">
+            <div className="h-4 w-24 bg-gray-200 rounded"></div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg p-4 shadow-md w-full border border-gray-200">
-        <p className="text-center text-sm text-red-500">Error loading points data</p>
+      <div className="bg-white rounded-xl p-5 w-full border border-gray-200">
+        <div className="text-center text-sm text-red-500 py-4">
+          Error loading points data
+        </div>
       </div>
     );
   }
 
   if (!pointsData) {
     return (
-      <div className="bg-white rounded-lg p-4 shadow-md w-full border border-gray-200">
-        <p className="text-center text-sm text-gray-600">No points data available</p>
+      <div className="bg-white rounded-xl p-5 w-full border border-gray-200">
+        <div className="text-center text-sm text-gray-500 py-4">
+          No points data available
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-md w-full border border-gray-200">
+    <div className="bg-white rounded-xl p-5 w-full border border-gray-200">
       <div className="flex justify-between items-center mb-3">
-        <div className="text-gray-500 text-xs font-bold">
-          Rank <span className="text-gray-800">{pointsData.rank}</span>
+        <div className="text-gray-500 text-xs font-medium px-2 py-1 bg-gray-100 rounded-full">
+          Rank <span className="text-gray-800 font-semibold">{pointsData.rank}</span>
         </div>
         <div className="flex items-center">
-          <div className="w-4 h-4 mr-1">
+          <div className="w-5 h-5 mr-1.5">
             <img 
               src="https://sonicscan.org/assets/sonic/images/svg/logos/token-light.svg?v=25.2.3.0" 
               alt="Sonic Token" 
               className="w-full h-full"
             />
           </div>
-          <h2 className="text-sm font-semibold text-gray-800">Your Sonic Points</h2>
+          <h2 className="text-sm font-medium text-gray-700">Your Sonic Points</h2>
         </div>
       </div>
       
-      <div className="text-center mt-2">
+      <div className="text-center my-4">
         <p className="text-blue-600 text-4xl font-bold">{formattedPoints}</p>
       </div>
       
-      <div className="mt-2 text-center">
+      <div className="mt-3 text-center">
         <a 
           href="https://blog.soniclabs.com/sonic-points-simplified-how-to-qualify-for-200-million-s-airdrop/" 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="text-gray-500 text-xs flex items-center justify-center hover:text-blue-600"
+          className="text-gray-500 text-xs flex items-center justify-center hover:text-blue-600 transition-colors"
         >
           Learn More
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3 ml-1">
