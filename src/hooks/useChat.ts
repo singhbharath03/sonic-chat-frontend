@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Message, MessageRole } from '@/types/chat';
+import { ApiResponse, Message, MessageRole } from '@/types/chat';
 import { sendMessages, fetchInitialMessages, makeRequest } from '@/services/chatService';
 import { UnsignedTransactionRequest, usePrivy, useWallets } from '@privy-io/react-auth';
 
@@ -10,10 +10,6 @@ interface TransactionDetails {
   };
 }
 
-interface ApiResponse {
-  holdings: TokenData[];
-  total_usd_value?: DisplayValue;
-}
 
 export function useChat() {
   const { user, ready } = usePrivy();
