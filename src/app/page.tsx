@@ -11,7 +11,15 @@ import { useHoldings } from '@/context/HoldingsContext';
 
 export default function Page() {
   const [inputText, setInputText] = useState('');
-  const { messages, isLoading, initializeChat, sendMessage, intermittentState } = useChat();
+  const { 
+    messages, 
+    isLoading, 
+    initializeChat, 
+    sendMessage, 
+    intermittentState,
+    transactionError,
+    retryTransaction
+  } = useChat();
   const { login, ready, authenticated } = usePrivy();
   const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
   const { setHoldingsData } = useHoldings();
@@ -66,7 +74,9 @@ export default function Page() {
           <ChatContainer 
             messages={messages} 
             isLoading={isLoading} 
-            intermittentState={intermittentState ?? null} 
+            intermittentState={intermittentState ?? null}
+            transactionError={transactionError}
+            onRetry={retryTransaction}
           />
           <ChatInput
             inputText={inputText}

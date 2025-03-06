@@ -2,24 +2,37 @@ import { useEffect, useRef } from 'react';
 import { Message } from '@/types/chat';
 import { ActionMessage, ChatMessage } from './ChatMessage';
 
+interface TransactionError {
+  message: string;
+  isRetryable: boolean;
+}
+
 interface ChatContainerProps {
   messages: Message[];
   isLoading: boolean;
   intermittentState: string | null;
+  transactionError?: TransactionError | null;
+  onRetry?: () => void;
 }
 
-export function ChatContainer({ messages, isLoading, intermittentState }: ChatContainerProps) {
+export function ChatContainer({ 
+  messages, 
+  isLoading, 
+  intermittentState,
+  transactionError,
+  onRetry 
+}: ChatContainerProps) {
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (endOfMessagesRef.current) {
       endOfMessagesRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, intermittentState]);
+  }, [messages, intermittentState, transactionError]);
 
   return (
     <div className="flex-1 p-5 overflow-y-auto flex flex-col space-y-4">
-      {messages.length === 0 && !isLoading && !intermittentState && (
+      {messages.length === 0 && !isLoading && !intermittentState && !transactionError && (
         <div className="flex items-center justify-center h-full">
           <div className="text-center p-8 rounded-xl bg-white border border-gray-200 shadow-sm max-w-md">
             <h3 className="text-lg font-medium text-gray-800 mb-2">Welcome to Sonic Chat</h3>
@@ -47,7 +60,24 @@ export function ChatContainer({ messages, isLoading, intermittentState }: ChatCo
             .map((message, index) => (
               <ChatMessage key={index} message={message} />
             ))}
-          {intermittentState && <ActionMessage content={intermittentState} />}
+          {intermittentState && !transactionError && <ActionMessage content={intermittentState} />}
+          {transactionError && (
+            <div className="flex justify-center">
+              <div className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-xl bg-red-50 border border-red-100">
+                <div className="text-red-600 text-sm font-medium">
+                  {transactionError.message}
+                </div>
+                {transactionError.isRetryable && onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-full hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  >
+                    Retry Transaction
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           <div ref={endOfMessagesRef} />
         </>
       )}

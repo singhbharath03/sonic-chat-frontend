@@ -10,6 +10,10 @@ interface TransactionDetails {
   };
 }
 
+interface TransactionError {
+  message: string;
+  isRetryable: boolean;
+}
 
 export function useChat() {
   const { user, ready } = usePrivy();
@@ -19,6 +23,7 @@ export function useChat() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [intermittentState, setIntermittentState] = useState<string | null>(null);
   const [holdingsData, setHoldingsData] = useState<ApiResponse>();
+  const [transactionError, setTransactionError] = useState<TransactionError | null>(null);
 
   const initializeChat = useCallback(async () => {
     if (!user?.id) return;
@@ -49,53 +54,100 @@ export function useChat() {
     fetchInitialMessages: async () => {},
   };
 
-  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void, setHoldingsData: (data: ApiResponse) => void) => {
+  const handleLLMResponse = async (conversationId: string, setIntermittentState: (state: string | null) => void, setHoldingsData: (data: ApiResponse) => void, retryCount = 0) => {
     if (!user?.id) return;
-    const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
+    
+    try {
+      setTransactionError(null);
+      const conv = await makeRequest<TransactionDetails>(`/chat/conversations/${conversationId}/pending_transaction`, user.id);
 
-    // Extract the actual transaction object
-    const txData = conv.transaction_details.transaction;
+      // Extract the actual transaction object
+      const txData = conv.transaction_details.transaction;
+      const description = conv.transaction_details.description;
+      setIntermittentState(description);
 
-    const description = conv.transaction_details.description;
-    setIntermittentState(description);
-
-    const wallet = wallets[0];
-    const provider = await wallet.getEthereumProvider();
-
-    const txHash = await provider.request({
-      method: 'eth_sendTransaction',
-      params: [txData]
-    });
-
-    if (txHash) {
-      // Submit the signed transaction hash and get updated messages
-      const response = await makeRequest< {messages: Message[], needs_txn_signing: boolean}, {signed_tx_hash: string} >(
-        `/chat/conversations/${conversationId}/submit_transaction`,
-        user.id,
-        {
-          method: 'POST',
-          body: { signed_tx_hash: txHash }
-        }
-      );
-
-      // Update messages with the response
-      setMessages(response.messages);
-      if (response.needs_txn_signing) {
-        await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
-      } else {
-        setIntermittentState(null);
+      const wallet = wallets[0];
+      if (!wallet) {
+        throw new Error('No wallet connected');
       }
 
-      // Call fetchData after the transaction is completed
-      const fetchData = async () => {
-        if (!user?.id) return;
-        const userId = user.id;
-        const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-        setHoldingsData(response);
-      };
+      const provider = await wallet.getEthereumProvider();
+      
+      try {
+        const txHash = await provider.request({
+          method: 'eth_sendTransaction',
+          params: [txData]
+        });
 
-      fetchData();
+        if (txHash) {
+          // Submit the signed transaction hash and get updated messages
+          const response = await makeRequest< {messages: Message[], needs_txn_signing: boolean}, {signed_tx_hash: string} >(
+            `/chat/conversations/${conversationId}/submit_transaction`,
+            user.id,
+            {
+              method: 'POST',
+              body: { signed_tx_hash: txHash }
+            }
+          );
+
+          // Update messages with the response
+          setMessages(response.messages);
+          if (response.needs_txn_signing) {
+            await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
+          } else {
+            setIntermittentState(null);
+          }
+
+          // Call fetchData after the transaction is completed
+          const fetchData = async () => {
+            if (!user?.id) return;
+            const userId = user.id;
+            const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+            setHoldingsData(response);
+          };
+
+          fetchData();
+        }
+      } catch (error: any) {
+        // Handle user rejection or wallet errors
+        const errorMessage = error?.message || 'Transaction failed';
+        if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
+          setTransactionError({
+            message: 'Transaction was rejected. Please try again when ready.',
+            isRetryable: true
+          });
+        } else {
+          setTransactionError({
+            message: 'Failed to process transaction. Please try again.',
+            isRetryable: true
+          });
+        }
+        setIntermittentState(null);
+      }
+    } catch (error: any) {
+      // Handle API/network errors
+      console.error('Transaction error:', error);
+      if (retryCount < 3 && error?.message?.includes('Failed to get response')) {
+        // Retry on network errors
+        setTimeout(() => {
+          handleLLMResponse(conversationId, setIntermittentState, setHoldingsData, retryCount + 1);
+        }, 1000 * (retryCount + 1)); // Exponential backoff
+      } else {
+        setTransactionError({
+          message: 'Network error. Please check your connection and try again.',
+          isRetryable: true
+        });
+        setIntermittentState(null);
+      }
     }
+  };
+
+  const retryTransaction = async () => {
+    if (!conversationId || !user?.id) return;
+    
+    setTransactionError(null);
+    setIntermittentState('Retrying transaction...');
+    await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
   };
 
   const sendMessage = async (content: string, setHoldingsData: (data: ApiResponse) => void) => {
@@ -123,5 +175,7 @@ export function useChat() {
     intermittentState,
     setIntermittentState,
     holdingsData,
+    transactionError,
+    retryTransaction
   };
 }
