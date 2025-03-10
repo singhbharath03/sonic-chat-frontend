@@ -35,7 +35,10 @@ export default function Page() {
     if (!inputText.trim() || !authenticated) return;
     
     setInputText('');
-    await sendMessage(inputText, setHoldingsData);
+        
+    await sendMessage(inputText, (data) => {
+      setHoldingsData(data);
+    });
   };
 
   if (!ready) {

@@ -102,11 +102,35 @@ export function useChat() {
           const fetchData = async () => {
             if (!user?.id) return;
             const userId = user.id;
-            const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
-            setHoldingsData(response);
+            
+            // Add a small delay to ensure the backend has processed the transaction
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            try {
+              const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
+              
+              // Use the passed setHoldingsData function to update the context
+              if (typeof setHoldingsData === 'function') {
+                // Create a new object to ensure React detects the change
+                const newResponse = JSON.parse(JSON.stringify(response));
+                setHoldingsData(newResponse);
+                
+                // Dispatch a custom event to notify the Sidebar component
+                const event = new CustomEvent('holdingsUpdated', { detail: newResponse });
+                window.dispatchEvent(event);
+              } else {
+                console.error('setHoldingsData is not a function:', setHoldingsData);
+              }
+            } catch (error) {
+              console.error('Failed to fetch holdings data:', error);
+            }
           };
 
-          fetchData();
+          try {
+            await fetchData();
+          } catch (error) {
+            console.error('Failed to update holdings data:', error);
+          }
         }
       } catch (error: unknown) {
         // Handle user rejection or wallet errors
@@ -157,7 +181,22 @@ export function useChat() {
     
     setTransactionError(null);
     setIntermittentState('Retrying transaction...');
-    await handleLLMResponse(conversationId, setIntermittentState, setHoldingsData);
+    
+    // Use the same setHoldingsData function that was passed to sendMessage
+    const updateHoldings = async (data: ApiResponse) => {
+      // Add a small delay to ensure the backend has processed the transaction
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Create a new object to ensure React detects the change
+      const newData = JSON.parse(JSON.stringify(data));
+      setHoldingsData(newData);
+      
+      // Dispatch a custom event to notify the Sidebar component
+      const event = new CustomEvent('holdingsUpdated', { detail: newData });
+      window.dispatchEvent(event);
+    };
+    
+    await handleLLMResponse(conversationId, setIntermittentState, updateHoldings);
   };
 
   const sendMessage = async (content: string, setHoldingsData: (data: ApiResponse) => void) => {

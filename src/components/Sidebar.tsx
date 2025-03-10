@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { makeRequest } from '@/services/chatService';
 import { usePrivy } from '@privy-io/react-auth';
 import { useHoldings } from '@/context/HoldingsContext';
@@ -31,29 +31,77 @@ interface ApiResponse {
 }
 
 export function Sidebar({ heading }: SidebarProps) {
-  const { holdingsData, setHoldingsData } = useHoldings();
+  const { holdingsData, setHoldingsData, refreshKey } = useHoldings();
   const { user } = usePrivy();
+  const [, forceUpdate] = useState({});
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!user?.id) return;
-      const userId = user.id;
+  const fetchHoldingsData = useCallback(async () => {
+    if (!user?.id) return;
+    const userId = user.id;
+    try {
+      setIsRefreshing(true);
       const response = await makeRequest<ApiResponse>('/chat/sonic_holdings', userId);
       setHoldingsData(response);
+      // Force a re-render
+      forceUpdate({});
+    } catch (error) {
+      console.error('Failed to fetch holdings data in Sidebar:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [user?.id, setHoldingsData, forceUpdate]);
+
+  useEffect(() => {
+    fetchHoldingsData();
+  }, [fetchHoldingsData]);
+
+  // Log when holdings data changes or refreshKey changes
+  useEffect(() => {
+    // Force a re-render when refreshKey changes
+    forceUpdate({});
+  }, [holdingsData, refreshKey]);
+
+  // Add a direct update mechanism
+  useEffect(() => {
+    // Create a function to handle custom events
+    const handleHoldingsUpdate = (event: CustomEvent) => {
+      if (event.detail && typeof setHoldingsData === 'function') {
+        setHoldingsData(event.detail);
+        forceUpdate({});
+      }
     };
 
-    fetchData();
-  }, [user?.id, setHoldingsData]);
+    // Add event listener for custom event
+    window.addEventListener('holdingsUpdated', handleHoldingsUpdate as EventListener);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('holdingsUpdated', handleHoldingsUpdate as EventListener);
+    };
+  }, [setHoldingsData]);
 
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-5">
         <h2 className="text-xl font-semibold text-gray-800">{heading}</h2>
-        {holdingsData?.total_usd_value && (
-          <div className="text-sm font-medium px-3 py-1 bg-blue-50 text-blue-600 rounded-full">
-            {holdingsData.total_usd_value.display_value}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          {holdingsData?.total_usd_value && (
+            <div className="text-sm font-medium px-3 py-1 bg-blue-50 text-blue-600 rounded-full">
+              {holdingsData.total_usd_value.display_value}
+            </div>
+          )}
+          <button 
+            onClick={fetchHoldingsData}
+            className={`p-2 ${isRefreshing ? 'text-blue-600 animate-spin' : 'text-gray-500 hover:text-blue-600'} transition-colors`}
+            title="Refresh holdings"
+            disabled={isRefreshing}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
       </div>
       
       <div className="overflow-hidden rounded-xl shadow-sm border border-gray-200">
@@ -66,8 +114,8 @@ export function Sidebar({ heading }: SidebarProps) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {holdingsData?.holdings.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors">
+            {holdingsData?.holdings.map((row) => (
+              <tr key={`${row.token_address}-${row.balance.value}-${refreshKey}`} className="hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <img src={row.logo_url} alt={row.name} className="w-6 h-6 mr-2 rounded-full" />
