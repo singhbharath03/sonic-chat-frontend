@@ -108,9 +108,12 @@ export function useChat() {
 
           fetchData();
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle user rejection or wallet errors
-        const errorMessage = error?.message || 'Transaction failed';
+        const errorMessage = typeof error === 'object' && error !== null && 'message' in error 
+          ? (error.message as string) 
+          : 'Transaction failed';
+          
         if (errorMessage.includes('user rejected') || errorMessage.includes('User rejected')) {
           setTransactionError({
             message: 'Transaction was rejected. Please try again when ready.',
@@ -124,10 +127,17 @@ export function useChat() {
         }
         setIntermittentState(null);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Handle API/network errors
       console.error('Transaction error:', error);
-      if (retryCount < 3 && error?.message?.includes('Failed to get response')) {
+      
+      const hasFailedResponseMessage = typeof error === 'object' && 
+        error !== null && 
+        'message' in error && 
+        typeof error.message === 'string' && 
+        error.message.includes('Failed to get response');
+        
+      if (retryCount < 3 && hasFailedResponseMessage) {
         // Retry on network errors
         setTimeout(() => {
           handleLLMResponse(conversationId, setIntermittentState, setHoldingsData, retryCount + 1);

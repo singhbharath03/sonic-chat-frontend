@@ -1,6 +1,6 @@
 import { WalletIcon } from '@/components/icons/WalletIcon';
 import { CopyButton } from '@/components/CopyButton';
-import { ConnectedWallet, ConnectedSolanaWallet } from '@privy-io/react-auth';
+import { ConnectedWallet } from '@privy-io/react-auth';
 
 interface WalletDisplayProps {
   evmWallets: ConnectedWallet[];
