@@ -4,10 +4,9 @@ import { ConnectedWallet, ConnectedSolanaWallet } from '@privy-io/react-auth';
 
 interface WalletDisplayProps {
   evmWallets: ConnectedWallet[];
-  solanaWallets: ConnectedSolanaWallet[];
 }
 
-export function WalletDisplay({ evmWallets, solanaWallets }: WalletDisplayProps) {
+export function WalletDisplay({ evmWallets }: WalletDisplayProps) {
   return (
     <div className="flex gap-3 p-5 justify-end border-b border-gray-200 bg-white">
       {evmWallets.map((wallet) => (

@@ -21,7 +21,7 @@ export default function Page() {
     retryTransaction
   } = useChat();
   const { login, ready, authenticated } = usePrivy();
-  const { embeddedEvmWallets, embeddedSolanaWallets } = useWalletManagement();
+  const { embeddedEvmWallets } = useWalletManagement();
   const { setHoldingsData } = useHoldings();
 
   useEffect(() => {
@@ -69,7 +69,6 @@ export default function Page() {
         <>
           <WalletDisplay 
             evmWallets={embeddedEvmWallets}
-            solanaWallets={embeddedSolanaWallets}
           />
           <ChatContainer 
             messages={messages} 
